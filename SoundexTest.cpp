@@ -91,6 +91,14 @@ TEST_F(SoundexEncoding, PadsWithZerosToEnsureThreeDigits) {
     ASSERT_THAT(soundex.encode("I"), Eq("I000"));
 }
 
+TEST_F(SoundexEncoding, PadsTwoConsontantWithZerosToEnsureThreeDigits) {
+    ASSERT_THAT(soundex.encode("Ixl"), Eq("I240"));
+}
+
+//TEST_F(SoundexEncoding, IgnoresCase) {
+//    ASSERT_THAT(soundex.encode("IXL"), Eq("I240"));
+//}
+
 TEST_F(SoundexEncoding, ReplacesLabialConsonantsWithAppropriateDigits) { 
     EXPECT_THAT(soundex.encode("Ab"), Eq("A100"));
     EXPECT_THAT(soundex.encode("Af"), Eq("A100"));
