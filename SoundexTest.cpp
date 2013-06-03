@@ -91,8 +91,12 @@ TEST_F(SoundexEncoding, PadsWithZerosToEnsureThreeDigits) {
     ASSERT_THAT(soundex.encode("I"), Eq("I000"));
 }
 
-TEST_F(SoundexEncoding, PadsTwoConsontantWithZerosToEnsureThreeDigits) {
+TEST_F(SoundexEncoding, EncodesTwoConsonants) {
     ASSERT_THAT(soundex.encode("Ixl"), Eq("I240"));
+}
+
+TEST_F(SoundexEncoding, EncodesThreeConsonants) {
+    ASSERT_THAT(soundex.encode("Ixlr"), Eq("I246"));
 }
 
 //TEST_F(SoundexEncoding, IgnoresCase) {
