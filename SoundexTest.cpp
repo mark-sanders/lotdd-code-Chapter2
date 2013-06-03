@@ -37,9 +37,16 @@ private:
 
 public:
     std::string encode(const std::string& word) const {
-        return zeroPad(head(word) + encodedDigits(tail(word)));
+        return zeroPad(head(word) + encodedConsonants(tail(word)));
     }
 
+    std::string encoding(char letter) const {
+        const std::unordered_map<char, std::string> encodings = initial_encodings();
+
+        auto it = encodings.find(letter);
+        return (encodings.end() == it) ? "" : it->second;
+    };
+    
 private:
     static const unsigned int MaxCodeLength { 4 };
     
@@ -56,25 +63,27 @@ private:
         return word.substr(1);
     };
 
-    std::string encodedDigits(const std::string& toEncode) const {
-        
-    	std::string encoding;
-    
+    std::string encodedConsonants(const std::string& toEncode) const {        
+    	std::string code;
+    	
+    	std::string lastEncoding = "";
+    	
     	for (auto consonant : toEncode) {
-    	    encoding += encodedDigit(consonant);
+    	    std::string nextEncoding = encoding(consonant);
+    	    if (nextEncoding != lastEncoding) {
+    	        code += nextEncoding;
+    	        lastEncoding = nextEncoding;
+    	    }
     	    
-    	    if (MaxCodeLength - 1 == encoding.length()) break;
+    	    if (isComplete(code)) break;
     	}
     	
-    	return encoding;
+    	return code;
     };
 
-    std::string encodedDigit(char letter) const {
-        const std::unordered_map<char, std::string> encodings = initial_encodings();
-
-        auto it = encodings.find(letter);
-        return (encodings.end() == it) ? "" : it->second;
-    };
+    bool isComplete(const std::string& code) const {
+        return code.length() >= MaxCodeLength - 1;
+    }
 };
 
 
@@ -98,10 +107,6 @@ TEST_F(SoundexEncoding, EncodesTwoConsonants) {
 TEST_F(SoundexEncoding, EncodesThreeConsonants) {
     ASSERT_THAT(soundex.encode("Ixlr"), Eq("I246"));
 }
-
-//TEST_F(SoundexEncoding, IgnoresCase) {
-//    ASSERT_THAT(soundex.encode("IXL"), Eq("I240"));
-//}
 
 TEST_F(SoundexEncoding, ReplacesLabialConsonantsWithAppropriateDigits) { 
     EXPECT_THAT(soundex.encode("Ab"), Eq("A100"));
@@ -150,4 +155,21 @@ TEST_F(SoundexEncoding, ReplacesWithUpToThreeDigits) {
 TEST_F(SoundexEncoding, LimitsLengthToFourCharacters) {
     ASSERT_THAT(soundex.encode("Dcdlb").length(), Eq(4u));
 }
+
+TEST_F(SoundexEncoding, IgnoresVowelLikeLetters) {
+    ASSERT_THAT(soundex.encode("Caecioduhyl"), Eq("C234"));
+}
+
+TEST_F(SoundexEncoding, CombinesDuplicates) {
+    ASSERT_THAT(soundex.encode("Cccddll"), Eq("C234"));
+}
+
+TEST_F(SoundexEncoding, CombinesDuplicatesWithSameEncoding) {
+    ASSERT_THAT(soundex.encoding('c'), Eq(soundex.encoding('k')));
+    ASSERT_THAT(soundex.encoding('d'), Eq(soundex.encoding('t')));
+    ASSERT_THAT(soundex.encoding('m'), Eq(soundex.encoding('n')));
+    
+    ASSERT_THAT(soundex.encode("Cckdtmn"), Eq("C235"));
+}
+
 
