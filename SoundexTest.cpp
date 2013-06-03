@@ -40,11 +40,7 @@ private:
         const std::unordered_map<char, std::string> encodings = initial_encodings();
 
         auto it = encodings.find(letter);
-        if (encodings.end() == it) {
-            return "";
-        }
-        
-    	return it->second;
+        return (encodings.end() == it) ? "" : it->second;
     };
 
     static std::unordered_map<char, std::string> initial_encodings() {
