@@ -41,13 +41,10 @@ private:
     std::string encodedConsonants(const std::string& toEncode) const {        
     	std::string code;
     	
-    	std::string lastEncoding = "";
-    	
     	for (auto consonant : toEncode) {
     	    std::string nextEncoding = encodeLetter(consonant);
-    	    if (nextEncoding != lastEncoding) {
+    	    if (nextEncoding != lastEncoding(code)) {
     	        code += nextEncoding;
-    	        lastEncoding = nextEncoding;
     	    }
     	    
     	    if (isComplete(code)) break;
@@ -55,6 +52,11 @@ private:
     	
     	return code;
     };
+    
+    std::string lastEncoding(const std::string& code) const {
+        if (0 == code.length()) return "";
+        return code.substr(code.length() - 1, 1);
+    }
 
     bool isComplete(const std::string& code) const {
         return code.length() >= MaxCodeLength - 1;
