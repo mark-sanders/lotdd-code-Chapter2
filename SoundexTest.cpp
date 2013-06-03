@@ -10,39 +10,14 @@ using ::testing::Test;
 
 class Soundex {
 private:
-
-    static std::unordered_map<char, std::string> initial_encodings() {
-        const std::unordered_map<std::string, std::string> condensed_encodings {
-            { "1", "bfpv" },
-            { "2", "cgjkqsxz" },
-            { "3", "dt" },
-            { "4", "l" },
-            { "5", "mn" },
-            { "6", "r" },
-         };
-         
-         auto result = std::unordered_map<char, std::string>();
-         
-         for (auto kv : condensed_encodings) {
-             auto encoding = kv.first;
-             auto letters = kv.second;
-             for (auto c : letters) {
-                 result.emplace(c, encoding);
-             }
-         }
-         
-         return result;
-    }
-
+    static const std::unordered_map<char, std::string> encodings;
 
 public:
     std::string encode(const std::string& word) const {
         return zeroPad(head(word) + encodedConsonants(tail(word)));
     }
 
-    std::string encoding(char letter) const {
-        const std::unordered_map<char, std::string> encodings = initial_encodings();
-
+    std::string encodeLetter(char letter) const {
         auto it = encodings.find(letter);
         return (encodings.end() == it) ? "" : it->second;
     };
@@ -69,7 +44,7 @@ private:
     	std::string lastEncoding = "";
     	
     	for (auto consonant : toEncode) {
-    	    std::string nextEncoding = encoding(consonant);
+    	    std::string nextEncoding = encodeLetter(consonant);
     	    if (nextEncoding != lastEncoding) {
     	        code += nextEncoding;
     	        lastEncoding = nextEncoding;
@@ -85,6 +60,32 @@ private:
         return code.length() >= MaxCodeLength - 1;
     }
 };
+
+static std::unordered_map<char, std::string> initial_encodings() {
+
+    const std::string encodings [][2] {
+        { "1", "bfpv" },
+        { "2", "cgjkqsxz" },
+        { "3", "dt" },
+        { "4", "l" },
+        { "5", "mn" },
+        { "6", "r" },
+     };
+
+    auto result = std::unordered_map<char, std::string>();
+
+    for (auto pair : encodings) {
+        auto encoding = pair[0];
+        auto letters = pair[1];
+        for (auto letter : letters) {
+            result.emplace(letter, encoding);
+        }
+    }
+
+    return result;
+}
+
+const std::unordered_map<char, std::string> Soundex::encodings = initial_encodings();
 
 
 class SoundexEncoding : public Test {
@@ -160,14 +161,18 @@ TEST_F(SoundexEncoding, IgnoresVowelLikeLetters) {
     ASSERT_THAT(soundex.encode("Caecioduhyl"), Eq("C234"));
 }
 
+TEST_F(SoundexEncoding, IgnoresVowelLikeLettersSimple) {
+    ASSERT_THAT(soundex.encode("Caaaaaaaaaaaaaaaacdl"), Eq("C234"));
+}
+
 TEST_F(SoundexEncoding, CombinesDuplicates) {
     ASSERT_THAT(soundex.encode("Cccddll"), Eq("C234"));
 }
 
 TEST_F(SoundexEncoding, CombinesDuplicatesWithSameEncoding) {
-    ASSERT_THAT(soundex.encoding('c'), Eq(soundex.encoding('k')));
-    ASSERT_THAT(soundex.encoding('d'), Eq(soundex.encoding('t')));
-    ASSERT_THAT(soundex.encoding('m'), Eq(soundex.encoding('n')));
+    ASSERT_THAT(soundex.encodeLetter('c'), Eq(soundex.encodeLetter('k')));
+    ASSERT_THAT(soundex.encodeLetter('d'), Eq(soundex.encodeLetter('t')));
+    ASSERT_THAT(soundex.encodeLetter('m'), Eq(soundex.encodeLetter('n')));
     
     ASSERT_THAT(soundex.encode("Cckdtmn"), Eq("C235"));
 }
