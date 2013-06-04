@@ -1,14 +1,8 @@
 #include <string>
 #include <unordered_map>
 
-#include "gmock/gmock.h"    
-
 using ::std::toupper;
 using ::std::tolower;
-
-using ::testing::Eq;
-using ::testing::Test;
-
 
 class Soundex {
 private:
@@ -109,6 +103,11 @@ static std::unordered_map<char, char> initial_encodings() {
 const std::unordered_map<char, char> Soundex::encodings = initial_encodings();
 
 
+#include "gmock/gmock.h"    
+
+using ::testing::Eq;
+using ::testing::Test;
+
 class SoundexEncoding : public Test {
 public:
     Soundex soundex;
@@ -164,6 +163,7 @@ TEST_F(SoundexEncoding, ReplacesEmEnWithAppropriateDigits) {
 
 TEST_F(SoundexEncoding, IgnoresNonAlphabetics) {
     ASSERT_THAT(soundex.encode("A#"), Eq("A000"));
+    ASSERT_THAT(soundex.encode("Ca+e=ci$%od#'uhyl"), Eq("C234"));
 }
 
 TEST_F(SoundexEncoding, ExplicitNotEncodedFlag) {
