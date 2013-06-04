@@ -184,6 +184,7 @@ TEST_F(SoundexEncoding, LimitsLengthToFourCharacters) {
 
 TEST_F(SoundexEncoding, IgnoresVowelLikeLetters) {
     ASSERT_THAT(soundex.encode("Caecioduhyl"), Eq("C234"));
+    ASSERT_THAT(soundex.encode("CaAeEciIoOdUuhHYyl"), Eq("C234"));
 }
 
 TEST_F(SoundexEncoding, IgnoresVowelLikeLettersSimple) {
@@ -208,5 +209,7 @@ TEST_F(SoundexEncoding, IgnoresInitialLetterCase) {
 
 TEST_F(SoundexEncoding, IgnoresCaseWhenEncoding) {
     ASSERT_THAT(soundex.encode("Dcdlb"), soundex.encode("DCDLB"));
+    ASSERT_THAT(soundex.encode("dcdlb"), soundex.encode("DCDLB"));
+    ASSERT_THAT(soundex.encode("dCdLb"), soundex.encode("DcDlB"));
 }
 
