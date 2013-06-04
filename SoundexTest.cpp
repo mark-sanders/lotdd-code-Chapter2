@@ -1,36 +1,38 @@
 #include <string>
-#include <unordered_map>
+#include <vector>
 
 using ::std::toupper;
 using ::std::tolower;
 
 class Soundex {
 private:
-    static const std::unordered_map<char, char> encodings;
-    static const char InvalidEncoding { '\0' };
+    static const char InvalidEncoding;
+
     static const unsigned int MaxCodeLength { 4 };
+    
+    static const std::vector<char> encodings;
 
 public:
     static std::string encode(const std::string& word) {
         Soundex soundex(word);
-        return soundex.encode();
-    }
-
-    std::string encode() {
-         encodeInitial();
-         encodeWordAfterInitial(wordAfterInitial());
-         zeroPad();
-         return code;
+        
+        soundex.encodeInitial();
+        
+        soundex.encodeWordAfterInitial(soundex.wordAfterInitial());
+        
+        soundex.zeroPad();
+        
+        return soundex.code;
     }
 
     static char encodeLetter(char letter) {
-        auto it = encodings.find(tolower(letter));
-        
-        if (encodings.end() == it) {
+        letter = tolower(letter);
+
+        if (letter < 'a' || letter > 'z') {
             return InvalidEncoding;
         }
         
-        return it->second;
+        return encodings[encodingsIndex(letter)];
     };
     
     static bool isValidEncoding(char letter) {
@@ -99,34 +101,43 @@ private:
     bool isComplete() const {
         return code.length() >= MaxCodeLength;
     }
-
+    
+    static unsigned int encodingsIndex(char letter) {
+        return letter - 'a';
+    }
+    
+    static std::vector<char> initial_encodings();
 };
 
-static std::unordered_map<char, char> initial_encodings() {
+const char Soundex::InvalidEncoding = '\0';
+    
+std::vector<char> Soundex::initial_encodings() {
 
-    const std::string encodings [][2] {
-        { "1", "bfpv" },
-        { "2", "cgjkqsxz" },
-        { "3", "dt" },
-        { "4", "l" },
-        { "5", "mn" },
-        { "6", "r" },
-     };
+    const std::string reverse_encodings [][2] 
+        {
+            { "1", "bfpv" },
+            { "2", "cgjkqsxz" },
+            { "3", "dt" },
+            { "4", "l" },
+            { "5", "mn" },
+            { "6", "r" },
+        };
 
-    auto result = std::unordered_map<char, char>();
+    std::vector<char> encodings (26, InvalidEncoding);
 
-    for (auto encoding : encodings) {
+    for (auto encoding : reverse_encodings) {
         auto value = encoding[0][0];
         auto letters = encoding[1];
         for (auto letter : letters) {
-            result.emplace(letter, value);
+            encodings[encodingsIndex(letter)] = value;
         }
     }
 
-    return result;
+    return encodings;
 }
 
-const std::unordered_map<char, char> Soundex::encodings = initial_encodings();
+
+const std::vector<char> Soundex::encodings = Soundex::initial_encodings();
 
 
 #include "gmock/gmock.h"    
