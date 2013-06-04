@@ -58,10 +58,23 @@ private:
     void encodeTail(
             std::string& code,
             const std::string& tail) const {
+            
+        auto encodingToSkip = encodeLetter(code[0]);
         
         for (auto letter : tail) { 
-           
+        
     	    char nextEncoding = encodeLetter(letter);
+
+            if (isValidEncoding(encodingToSkip)) {
+                if (   isValidEncoding(nextEncoding) 
+                    && encodingToSkip == nextEncoding) {
+                    continue; // skip letter with same encoding as initial letter
+                }
+                else {
+                    encodingToSkip = InvalidEncoding;
+                }
+            }
+            
     	    
     	    if (    isValidEncoding(nextEncoding) 
     	        &&  nextEncoding != lastEncoding(code)) {
@@ -109,6 +122,7 @@ const std::unordered_map<char, char> Soundex::encodings = initial_encodings();
 
 
 #include "gmock/gmock.h"    
+
 
 using ::testing::Eq;
 using ::testing::Test;
@@ -199,7 +213,7 @@ TEST_F(SoundexEncoding, IgnoresVowelLikeLettersSimple) {
 }
 
 TEST_F(SoundexEncoding, CombinesDuplicates) {
-    EXPECT_THAT(soundex.encode("Xccddll"), Eq("X234"));
+    EXPECT_THAT(soundex.encode("llama"), soundex.encode("lama"));
     EXPECT_THAT(soundex.encode("lhama"), soundex.encode("lama"));
     EXPECT_THAT(soundex.encode("lamma"), soundex.encode("lama"));
     EXPECT_THAT(soundex.encode("lamna"), soundex.encode("lama"));
@@ -236,9 +250,9 @@ TEST_F(SoundexEncoding, CombinesDuplicateInitialVowels) {
     ASSERT_THAT(soundex.encode("Aardman"), Eq(soundex.encode("Ardman")));
 }
 
-//TODO: get this to pass
-//TEST_F(SoundexEncoding, CombinesDuplicateCodesWhen2ndLetterDuplicates1st) {
-//    EXPECT_THAT(soundex.encode("llama"), soundex.encode("lama"));
-//    ASSERT_THAT(soundex.encode("Cccddll"), Eq("C340"));
-//}
+TEST_F(SoundexEncoding, CombinesDuplicateCodesWhen2ndLetterDuplicates1st) {
+    EXPECT_THAT(soundex.encode("Cccddll"), Eq("C340"));
+    EXPECT_THAT(soundex.encode("Rrccddll"), Eq("R234"));
+    EXPECT_THAT(soundex.encode("Cccddll"), Eq("C340"));
+}
 
