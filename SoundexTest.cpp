@@ -9,7 +9,9 @@ using ::testing::Test;
 
 class Soundex {
 private:
-    static const std::unordered_map<char, std::string> encodings;
+    static const std::unordered_map<char, char> encodings;
+    static const char InvalidEncoding { '_' };
+    static const unsigned int MaxCodeLength { 4 };
 
 public:
     std::string encode(const std::string& word) const {
@@ -22,13 +24,20 @@ public:
         return zeroPad(encoded);
     }
 
-    std::string encodeLetter(char letter) const {
+    char encodeLetter(char letter) const {
         auto it = encodings.find(letter);
-        return (encodings.end() == it) ? "" : it->second;
+        if (encodings.end() == it) {
+            return InvalidEncoding;
+        }
+        
+        return it->second;
     };
     
+    static bool isValidEncoding(char letter) {
+        return InvalidEncoding != letter;
+    }
+    
 private:
-    static const unsigned int MaxCodeLength { 4 };
     
     std::string zeroPad(std::string& code) const {
         auto zerosNeeded = MaxCodeLength - code.length();
@@ -51,8 +60,9 @@ private:
     	std::string code;
     	
     	for (auto consonant : toEncode) {
-    	    std::string nextEncoding = encodeLetter(consonant);
-    	    if (nextEncoding != lastEncoding(code)) {
+    	    char nextEncoding = encodeLetter(consonant);
+    	    if (    isValidEncoding(nextEncoding) 
+    	        &&  nextEncoding != lastEncoding(code)) {
     	        code += nextEncoding;
     	    }
     	    
@@ -62,9 +72,9 @@ private:
     	return code;
     };
     
-    std::string lastEncoding(const std::string& code) const {
-        if (0 == code.length()) return "";
-        return code.substr(code.length() - 1, 1);
+    char lastEncoding(const std::string& code) const {
+        if (0 == code.length()) return InvalidEncoding;
+        return code[code.length() - 1];
     }
 
     bool isComplete(const std::string& code) const {
@@ -72,7 +82,7 @@ private:
     }
 };
 
-static std::unordered_map<char, std::string> initial_encodings() {
+static std::unordered_map<char, char> initial_encodings() {
 
     const std::string encodings [][2] {
         { "1", "bfpv" },
@@ -83,10 +93,10 @@ static std::unordered_map<char, std::string> initial_encodings() {
         { "6", "r" },
      };
 
-    auto result = std::unordered_map<char, std::string>();
+    auto result = std::unordered_map<char, char>();
 
     for (auto pair : encodings) {
-        auto encoding = pair[0];
+        auto encoding = pair[0][0];
         auto letters = pair[1];
         for (auto letter : letters) {
             result.emplace(letter, encoding);
@@ -96,7 +106,7 @@ static std::unordered_map<char, std::string> initial_encodings() {
     return result;
 }
 
-const std::unordered_map<char, std::string> Soundex::encodings = initial_encodings();
+const std::unordered_map<char, char> Soundex::encodings = initial_encodings();
 
 
 class SoundexEncoding : public Test {
@@ -154,6 +164,10 @@ TEST_F(SoundexEncoding, ReplacesEmEnWithAppropriateDigits) {
 
 TEST_F(SoundexEncoding, IgnoresNonAlphabetics) {
     ASSERT_THAT(soundex.encode("A#"), Eq("A000"));
+}
+
+TEST_F(SoundexEncoding, ExplicitNotEncodedFlag) {
+    ASSERT_THAT(Soundex::isValidEncoding(soundex.encodeLetter('#')), false);
 }
 
 TEST_F(SoundexEncoding, ReplacesMultipleConsontantsWithDigits) {
