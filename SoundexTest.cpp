@@ -13,7 +13,7 @@ using ::testing::Test;
 class Soundex {
 private:
     static const std::unordered_map<char, char> encodings;
-    static const char InvalidEncoding { '_' };
+    static const char InvalidEncoding { '\0' };
     static const unsigned int MaxCodeLength { 4 };
 
 public:
