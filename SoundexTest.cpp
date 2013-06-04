@@ -12,15 +12,11 @@ private:
 
 public:
     std::string encode(const std::string& word) const {
-    	std::string code;
-    	
-        encodeInitial(code, word);
-        encodeWordAfterInitial(code, wordAfterInitial(code, word));
-    	
-        return zeroPad(code);
+        Encoder encoder(word);
+        return encoder.encode();
     }
 
-    char encodeLetter(char letter) const {
+    static char encodeLetter(char letter) {
         auto it = encodings.find(tolower(letter));
         
         if (encodings.end() == it) {
@@ -36,75 +32,82 @@ public:
     
 private:
 
-    void encodeInitial(
-            std::string& code, 
-            const std::string& word) const {
-        code += toupper(initial(word));
-    }
-    
-    char initial(const std::string& word) const {
-        return word[0];
-    };
-    
-    std::string zeroPad(std::string& code) const {
-        auto zerosNeeded = MaxCodeLength - code.length();
-        return code += std::string(zerosNeeded, '0');
-    }
-    
-    std::string wordAfterInitial(
-            std::string& code,
-            const std::string& word) const {
-       
-        auto wordAfterInitial = word.substr(1);
+    class Encoder {
+    private:
+        const std::string& word;
+        std::string code;
         
-        auto encodingToSkip = encodeLetter(code[0]);
+    public:    
+        Encoder(const std::string& wordToEncode) 
+            : word(wordToEncode)
+            {}
         
-        if (isValidEncoding(encodingToSkip)) {
-            
-            for (unsigned int i = 0; i < wordAfterInitial.length(); i++) {
-
-    	        auto nextEncoding = encodeLetter(wordAfterInitial[i]);
-    	        
-                if (encodingToSkip != nextEncoding) {
-        	        return wordAfterInitial.substr(i);
-                }
-            }
-            
-            return "";
-        } 
-        else {
-            return wordAfterInitial;
+        std::string encode() {
+            encodeInitial();
+            encodeWordAfterInitial(wordAfterInitial());
+            zeroPad();
+            return code;
         }
         
-    }
+    private:
+        void encodeInitial() {
+            code += toupper(word[0]);
+        }
     
+        void zeroPad() {
+            auto zerosNeeded = MaxCodeLength - code.length();
+            code += std::string(zerosNeeded, '0');
+        }
     
-    void encodeWordAfterInitial(
-            std::string& code,
-            const std::string& wordAfterInitial) const {
+        std::string wordAfterInitial() const {
+       
+            auto wordAfterInitial = word.substr(1);
         
-        for (auto letter : wordAfterInitial) { 
+            auto encodingToSkip = encodeLetter(code[0]);
         
-    	    auto nextEncoding = encodeLetter(letter);
+            if (isValidEncoding(encodingToSkip)) {
+            
+                for (unsigned int i = 0; i < wordAfterInitial.length(); i++) {
 
-    	    if (    isValidEncoding(nextEncoding) 
-    	        &&  nextEncoding != lastEncoding(code)) {
-    	        code += nextEncoding;
-    	        if (isComplete(code)) break;
+        	        auto nextEncoding = encodeLetter(wordAfterInitial[i]);
+    	        
+                    if (encodingToSkip != nextEncoding) {
+            	        return wordAfterInitial.substr(i);
+                    }
+                }
+            
+                return ""; // only repeats of initial letter
+            } 
+            else {
+                return wordAfterInitial;
+            }
+        
+        }
+    
+    
+        void encodeWordAfterInitial(const std::string& wordAfterInitial) {
+        
+            for (auto letter : wordAfterInitial) {
+                auto nextEncoding = encodeLetter(letter);
+
+    	        if (isValidEncoding(nextEncoding) &&  nextEncoding != lastEncoding()) {
+    	            code += nextEncoding;
+    	            if (isComplete()) break;
+    	        }
     	    }
-    	}
+        }
+
+   
+        char lastEncoding() const {
+            if (0 == code.length()) return InvalidEncoding;
+            return code[code.length() - 1];
+        }
+
+        bool isComplete() const {
+            return code.length() >= MaxCodeLength;
+        }
     };
 
-
-    
-    char lastEncoding(const std::string& code) const {
-        if (0 == code.length()) return InvalidEncoding;
-        return code[code.length() - 1];
-    }
-
-    bool isComplete(const std::string& code) const {
-        return code.length() >= MaxCodeLength;
-    }
 };
 
 static std::unordered_map<char, char> initial_encodings() {
