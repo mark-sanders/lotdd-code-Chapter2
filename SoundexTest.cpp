@@ -199,7 +199,10 @@ TEST_F(SoundexEncoding, IgnoresVowelLikeLettersSimple) {
 }
 
 TEST_F(SoundexEncoding, CombinesDuplicates) {
-    ASSERT_THAT(soundex.encode("Xccddll"), Eq("X234"));
+    EXPECT_THAT(soundex.encode("Xccddll"), Eq("X234"));
+    EXPECT_THAT(soundex.encode("lhama"), soundex.encode("lama"));
+    EXPECT_THAT(soundex.encode("lamma"), soundex.encode("lama"));
+    EXPECT_THAT(soundex.encode("lamna"), soundex.encode("lama"));
 }
 
 TEST_F(SoundexEncoding, CombinesDuplicatesWithSameEncoding) {
@@ -220,16 +223,22 @@ TEST_F(SoundexEncoding, IgnoresCaseWhenEncoding) {
     ASSERT_THAT(soundex.encode("dCdLb"), soundex.encode("DcDlB"));
 }
 
-// TODO: get this to pass
-//TEST_F(SoundexEncoding, CombinesDuplicateCodesWhen2ndLetterDuplicates1st) {
-//   ASSERT_THAT(soundex.encode("Bbcd"), Eq("B230"));
-//}
-
 TEST_F(SoundexEncoding, DoesNotCombineInitialDuplicatesWhenSeparatedByVowels) {
     ASSERT_THAT(soundex.encode("Cacdl"), Eq("C234"));
 }
 
-TEST_F(SoundexEncoding, CombinesDuplicateInitialVowels) {
-   ASSERT_THAT(soundex.encode("Aardman"), Eq(soundex.encode("Ardman")));
+TEST_F(SoundexEncoding, DoesNotCombineDuplicatesWhenSeparatedByVowels) {
+    ASSERT_THAT(soundex.encode("Rcacdl"), Eq("R234"));
 }
+
+TEST_F(SoundexEncoding, CombinesDuplicateInitialVowels) {
+    ASSERT_THAT(soundex.encode("Aerdman"), Eq(soundex.encode("Ardman")));
+    ASSERT_THAT(soundex.encode("Aardman"), Eq(soundex.encode("Ardman")));
+}
+
+//TODO: get this to pass
+//TEST_F(SoundexEncoding, CombinesDuplicateCodesWhen2ndLetterDuplicates1st) {
+//    EXPECT_THAT(soundex.encode("llama"), soundex.encode("lama"));
+//    ASSERT_THAT(soundex.encode("Cccddll"), Eq("C340"));
+//}
 
