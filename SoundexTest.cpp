@@ -14,8 +14,8 @@ public:
     std::string encode(const std::string& word) const {
     	std::string code;
     	
-        encodeHead(code, word);
-        encodeTail(code, tail(word));
+        encodeInitial(code, word);
+        encodeWordAfterInitial(code, wordAfterInitial(code, word));
     	
         return zeroPad(code);
     }
@@ -36,13 +36,13 @@ public:
     
 private:
 
-    void encodeHead(
+    void encodeInitial(
             std::string& code, 
             const std::string& word) const {
-        code += toupper(head(word));
+        code += toupper(initial(word));
     }
     
-    char head(const std::string& word) const {
+    char initial(const std::string& word) const {
         return word[0];
     };
     
@@ -51,31 +51,42 @@ private:
         return code += std::string(zerosNeeded, '0');
     }
     
-    std::string tail(const std::string& word) const {
-        return word.substr(1);
-    };
-
-    void encodeTail(
+    std::string wordAfterInitial(
             std::string& code,
-            const std::string& tail) const {
-            
+            const std::string& word) const {
+       
+        auto wordAfterInitial = word.substr(1);
+        
         auto encodingToSkip = encodeLetter(code[0]);
         
-        for (auto letter : tail) { 
-        
-    	    char nextEncoding = encodeLetter(letter);
+        if (isValidEncoding(encodingToSkip)) {
+            
+            for (unsigned int i = 0; i < wordAfterInitial.length(); i++) {
 
-            if (isValidEncoding(encodingToSkip)) {
-                if (   isValidEncoding(nextEncoding) 
-                    && encodingToSkip == nextEncoding) {
-                    continue; // skip letter with same encoding as initial letter
-                }
-                else {
-                    encodingToSkip = InvalidEncoding;
+    	        auto nextEncoding = encodeLetter(wordAfterInitial[i]);
+    	        
+                if (encodingToSkip != nextEncoding) {
+        	        return wordAfterInitial.substr(i);
                 }
             }
             
-    	    
+            return "";
+        } 
+        else {
+            return wordAfterInitial;
+        }
+        
+    }
+    
+    
+    void encodeWordAfterInitial(
+            std::string& code,
+            const std::string& wordAfterInitial) const {
+        
+        for (auto letter : wordAfterInitial) { 
+        
+    	    auto nextEncoding = encodeLetter(letter);
+
     	    if (    isValidEncoding(nextEncoding) 
     	        &&  nextEncoding != lastEncoding(code)) {
     	        code += nextEncoding;
@@ -83,6 +94,8 @@ private:
     	    }
     	}
     };
+
+
     
     char lastEncoding(const std::string& code) const {
         if (0 == code.length()) return InvalidEncoding;
@@ -254,5 +267,10 @@ TEST_F(SoundexEncoding, CombinesDuplicateCodesWhen2ndLetterDuplicates1st) {
     EXPECT_THAT(soundex.encode("Cccddll"), Eq("C340"));
     EXPECT_THAT(soundex.encode("Rrccddll"), Eq("R234"));
     EXPECT_THAT(soundex.encode("Cccddll"), Eq("C340"));
+}
+
+TEST_F(SoundexEncoding, CombinesDuplicatesToEnd) {
+    EXPECT_THAT(soundex.encode("Cccc"), Eq("C000"));
+    EXPECT_THAT(soundex.encode("Aaaa"), Eq("A000"));
 }
 
