@@ -7,14 +7,19 @@ using ::testing::Eq;
 using ::testing::Test;
 
 
-
 class Soundex {
 private:
     static const std::unordered_map<char, std::string> encodings;
 
 public:
     std::string encode(const std::string& word) const {
-        return zeroPad(head(word) + encodedConsonants(tail(word)));
+    	std::string encoded;
+
+        encoded += upper(initial(word));
+        
+        encoded += encodedConsonants(tail(word));
+    	
+        return zeroPad(encoded);
     }
 
     std::string encodeLetter(char letter) const {
@@ -25,13 +30,17 @@ public:
 private:
     static const unsigned int MaxCodeLength { 4 };
     
-    std::string zeroPad(const std::string& code) const {
+    std::string zeroPad(std::string& code) const {
         auto zerosNeeded = MaxCodeLength - code.length();
-        return code + std::string(zerosNeeded, '0');
+        return code += std::string(zerosNeeded, '0');
     }
     
-    std::string head(const std::string& word) const {
-        return word.substr(0, 1);
+    char initial(const std::string& word) const {
+        return word[0];
+    };
+    
+    char upper(char initial) const {
+        return ::std::toupper(initial);
     };
 
     std::string tail(const std::string& word) const {
@@ -179,4 +188,7 @@ TEST_F(SoundexEncoding, CombinesDuplicatesWithSameEncoding) {
     ASSERT_THAT(soundex.encode("Cckdtmn"), Eq("C235"));
 }
 
+TEST_F(SoundexEncoding, IgnoresInitialLetterCase) {
+    ASSERT_THAT(soundex.encode("Dcdlb"), soundex.encode("dcdlb"));
+}
 
