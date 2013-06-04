@@ -12,13 +12,12 @@ private:
 
 public:
     std::string encode(const std::string& word) const {
-    	std::string encoded;
+    	std::string code;
     	
-        encoded += toupper(initial(word));
-        
-        encodedConsonants(encoded, tail(word));
+        encodeHead(code, word);
+        encodeTail(code, tail(word));
     	
-        return zeroPad(encoded);
+        return zeroPad(code);
     }
 
     char encodeLetter(char letter) const {
@@ -36,32 +35,39 @@ public:
     }
     
 private:
+
+    void encodeHead(
+            std::string& code, 
+            const std::string& word) const {
+        code += toupper(head(word));
+    }
+    
+    char head(const std::string& word) const {
+        return word[0];
+    };
     
     std::string zeroPad(std::string& code) const {
         auto zerosNeeded = MaxCodeLength - code.length();
         return code += std::string(zerosNeeded, '0');
     }
     
-    char initial(const std::string& word) const {
-        return word[0];
-    };
-    
     std::string tail(const std::string& word) const {
         return word.substr(1);
     };
 
-    void encodedConsonants(
+    void encodeTail(
             std::string& code,
-            const std::string& toEncode) const {        
-    	
-    	for (auto consonant : toEncode) {
-    	    char nextEncoding = encodeLetter(consonant);
+            const std::string& tail) const {
+        
+        for (auto letter : tail) { 
+           
+    	    char nextEncoding = encodeLetter(letter);
+    	    
     	    if (    isValidEncoding(nextEncoding) 
     	        &&  nextEncoding != lastEncoding(code)) {
     	        code += nextEncoding;
+    	        if (isComplete(code)) break;
     	    }
-    	    
-    	    if (isComplete(code)) break;
     	}
     };
     
@@ -201,7 +207,7 @@ TEST_F(SoundexEncoding, CombinesDuplicatesWithSameEncoding) {
     ASSERT_THAT(soundex.encodeLetter('d'), Eq(soundex.encodeLetter('t')));
     ASSERT_THAT(soundex.encodeLetter('m'), Eq(soundex.encodeLetter('n')));
     
-    ASSERT_THAT(soundex.encode("Xckdtmn"), Eq("X235"));
+    ASSERT_THAT(soundex.encode("Rckdtmn"), Eq("R235"));
 }
 
 TEST_F(SoundexEncoding, IgnoresInitialLetterCase) {
@@ -214,8 +220,16 @@ TEST_F(SoundexEncoding, IgnoresCaseWhenEncoding) {
     ASSERT_THAT(soundex.encode("dCdLb"), soundex.encode("DcDlB"));
 }
 
-//TODO: get this to pass
+// TODO: get this to pass
 //TEST_F(SoundexEncoding, CombinesDuplicateCodesWhen2ndLetterDuplicates1st) {
 //   ASSERT_THAT(soundex.encode("Bbcd"), Eq("B230"));
 //}
+
+TEST_F(SoundexEncoding, DoesNotCombineInitialDuplicatesWhenSeparatedByVowels) {
+    ASSERT_THAT(soundex.encode("Cacdl"), Eq("C234"));
+}
+
+TEST_F(SoundexEncoding, CombinesDuplicateInitialVowels) {
+   ASSERT_THAT(soundex.encode("Aardman"), Eq(soundex.encode("Ardman")));
+}
 
