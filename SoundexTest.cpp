@@ -95,11 +95,11 @@ static std::unordered_map<char, char> initial_encodings() {
 
     auto result = std::unordered_map<char, char>();
 
-    for (auto pair : encodings) {
-        auto encoding = pair[0][0];
-        auto letters = pair[1];
+    for (auto encoding : encodings) {
+        auto value = encoding[0][0];
+        auto letters = encoding[1];
         for (auto letter : letters) {
-            result.emplace(letter, encoding);
+            result.emplace(letter, value);
         }
     }
 
