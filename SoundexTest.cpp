@@ -3,6 +3,9 @@
 
 #include "gmock/gmock.h"    
 
+using ::std::toupper;
+using ::std::tolower;
+
 using ::testing::Eq;
 using ::testing::Test;
 
@@ -16,8 +19,8 @@ private:
 public:
     std::string encode(const std::string& word) const {
     	std::string encoded;
-
-        encoded += upper(initial(word));
+    	
+        encoded += toupper(initial(word));
         
         encoded += encodedConsonants(tail(word));
     	
@@ -25,7 +28,8 @@ public:
     }
 
     char encodeLetter(char letter) const {
-        auto it = encodings.find(letter);
+        auto it = encodings.find(tolower(letter));
+        
         if (encodings.end() == it) {
             return InvalidEncoding;
         }
@@ -48,10 +52,6 @@ private:
         return word[0];
     };
     
-    char upper(char initial) const {
-        return ::std::toupper(initial);
-    };
-
     std::string tail(const std::string& word) const {
         return word.substr(1);
     };
@@ -204,5 +204,9 @@ TEST_F(SoundexEncoding, CombinesDuplicatesWithSameEncoding) {
 
 TEST_F(SoundexEncoding, IgnoresInitialLetterCase) {
     ASSERT_THAT(soundex.encode("Dcdlb"), soundex.encode("dcdlb"));
+}
+
+TEST_F(SoundexEncoding, IgnoresCaseWhenEncoding) {
+    ASSERT_THAT(soundex.encode("Dcdlb"), soundex.encode("DCDLB"));
 }
 
