@@ -1,10 +1,8 @@
 #include <string>
 #include <array>
 
-using ::std::toupper;
-using ::std::tolower;
+typedef std::array<char, 26> EncodingTable;
 
-typedef std::array<char, 26> EncodingArray;
 
 class Soundex {
 private:
@@ -12,8 +10,7 @@ private:
 
     static constexpr unsigned int MaxCodeLength { 4 };
 
-    static const EncodingArray
- encodings;
+    static const EncodingTable encodingTable;
 
 public:
     static std::string encode(const std::string& word) {
@@ -29,13 +26,13 @@ public:
     }
 
     static char encodeLetter(char letter) {
-        letter = tolower(letter);
+        letter = std::tolower(letter);
 
         if (letter < 'a' || letter > 'z') {
             return InvalidEncoding;
         }
         
-        return encodings[encodingsIndex(letter)];
+        return encodingTable[encodingTableIndex(letter)];
     };
     
     static bool isValidEncoding(char letter) {
@@ -52,7 +49,7 @@ private:
         
         
     void encodeInitial() {
-        code += toupper(word[0]);
+        code += std::toupper(word[0]);
     }
     
     void zeroPad() {
@@ -76,7 +73,7 @@ private:
                 }
             }
             
-            return ""; // only repeats of initial letter
+            return ""; // there were only repeats of initial letter
         } 
         else {
             return wordAfterInitial;
@@ -105,18 +102,17 @@ private:
         return code.length() >= MaxCodeLength;
     }
     
-    static unsigned int encodingsIndex(char letter) {
+    static unsigned int encodingTableIndex(char letter) {
         return letter - 'a';
     }
     
-    static EncodingArray
- initial_encodings();
+    static EncodingTable setupEncodingTable();
 };
 
     
-EncodingArray Soundex::initial_encodings() {
+EncodingTable Soundex::setupEncodingTable() {
 
-    const std::string reverse_encodings [][2] 
+    const std::string reverseEncodingTable [][2] 
         {
             { "1", "bfpv" },
             { "2", "cgjkqsxz" },
@@ -126,25 +122,25 @@ EncodingArray Soundex::initial_encodings() {
             { "6", "r" },
         };
 
-    EncodingArray encodings;
-    encodings.fill(InvalidEncoding);
+    EncodingTable encodingTable;
+    encodingTable.fill(InvalidEncoding);
 
-    for (auto encoding : reverse_encodings) {
-        auto value = encoding[0][0];
-        auto letters = encoding[1];
+    for (auto reverseEncoding : reverseEncodingTable) {
+        auto value = reverseEncoding[0][0];
+        auto letters = reverseEncoding[1];
         for (auto letter : letters) {
-            encodings[encodingsIndex(letter)] = value;
+            encodingTable[encodingTableIndex(letter)] = value;
         }
     }
 
-    return encodings;
+    return encodingTable;
 }
 
 
 constexpr char Soundex::InvalidEncoding;
 constexpr unsigned int Soundex::MaxCodeLength;
 
-const EncodingArray Soundex::encodings = Soundex::initial_encodings();
+const EncodingTable Soundex::encodingTable = Soundex::setupEncodingTable();
 
 
 #include "gmock/gmock.h"    
