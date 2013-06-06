@@ -4,7 +4,7 @@
 using ::std::toupper;
 using ::std::tolower;
 
-typedef std::array<char, 26> AlphabetArray;
+typedef std::array<char, 26> EncodingArray;
 
 class Soundex {
 private:
@@ -12,7 +12,8 @@ private:
 
     static constexpr unsigned int MaxCodeLength { 4 };
 
-    static const AlphabetArray encodings;
+    static const EncodingArray
+ encodings;
 
 public:
     static std::string encode(const std::string& word) {
@@ -108,11 +109,12 @@ private:
         return letter - 'a';
     }
     
-    static AlphabetArray initial_encodings();
+    static EncodingArray
+ initial_encodings();
 };
 
     
-AlphabetArray Soundex::initial_encodings() {
+EncodingArray Soundex::initial_encodings() {
 
     const std::string reverse_encodings [][2] 
         {
@@ -124,7 +126,7 @@ AlphabetArray Soundex::initial_encodings() {
             { "6", "r" },
         };
 
-    AlphabetArray encodings;
+    EncodingArray encodings;
     encodings.fill(InvalidEncoding);
 
     for (auto encoding : reverse_encodings) {
@@ -142,7 +144,7 @@ AlphabetArray Soundex::initial_encodings() {
 constexpr char Soundex::InvalidEncoding;
 constexpr unsigned int Soundex::MaxCodeLength;
 
-const AlphabetArray Soundex::encodings = Soundex::initial_encodings();
+const EncodingArray Soundex::encodings = Soundex::initial_encodings();
 
 
 #include "gmock/gmock.h"    
