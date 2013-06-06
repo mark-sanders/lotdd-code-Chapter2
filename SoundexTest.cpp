@@ -1,16 +1,18 @@
 #include <string>
-#include <vector>
+#include <array>
 
 using ::std::toupper;
 using ::std::tolower;
+
+typedef std::array<char, 26> AlphabetArray;
 
 class Soundex {
 private:
     static constexpr char InvalidEncoding { '\0' };
 
     static constexpr unsigned int MaxCodeLength { 4 };
-    
-    static const std::vector<char> encodings;
+
+    static const AlphabetArray encodings;
 
 public:
     static std::string encode(const std::string& word) {
@@ -106,11 +108,11 @@ private:
         return letter - 'a';
     }
     
-    static std::vector<char> initial_encodings();
+    static AlphabetArray initial_encodings();
 };
 
     
-std::vector<char> Soundex::initial_encodings() {
+AlphabetArray Soundex::initial_encodings() {
 
     const std::string reverse_encodings [][2] 
         {
@@ -122,7 +124,8 @@ std::vector<char> Soundex::initial_encodings() {
             { "6", "r" },
         };
 
-    std::vector<char> encodings (26, InvalidEncoding);
+    AlphabetArray encodings;
+    encodings.fill(InvalidEncoding);
 
     for (auto encoding : reverse_encodings) {
         auto value = encoding[0][0];
@@ -139,7 +142,7 @@ std::vector<char> Soundex::initial_encodings() {
 constexpr char Soundex::InvalidEncoding;
 constexpr unsigned int Soundex::MaxCodeLength;
 
-const std::vector<char> Soundex::encodings = Soundex::initial_encodings();
+const AlphabetArray Soundex::encodings = Soundex::initial_encodings();
 
 
 #include "gmock/gmock.h"    
