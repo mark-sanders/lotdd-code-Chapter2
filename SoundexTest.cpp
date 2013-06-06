@@ -1,5 +1,6 @@
 #include <string>
 #include <array>
+#include <iostream>
 
 typedef std::array<char, 26> EncodingTable;
 
@@ -105,42 +106,65 @@ private:
     static unsigned int encodingTableIndex(char letter) {
         return letter - 'a';
     }
+
+    static void initTableValue(
+            EncodingTable& tab, const std::string& letters, char value);
     
-    static EncodingTable setupEncodingTable();
+    static EncodingTable initTable();
 };
 
-    
-EncodingTable Soundex::setupEncodingTable() {
+void Soundex::initTableValue(
+            EncodingTable& tab, const std::string& letters, char value) {
+    for (auto letter : letters) {
+        tab[encodingTableIndex(letter)] = value;
+    }
+}
 
-    const std::string reverseEncodingTable [][2] 
-        {
-            { "1", "bfpv" },
-            { "2", "cgjkqsxz" },
-            { "3", "dt" },
-            { "4", "l" },
-            { "5", "mn" },
-            { "6", "r" },
-        };
+EncodingTable Soundex::initTable() {
 
-    EncodingTable encodingTable;
-    encodingTable.fill(InvalidEncoding);
 
-    for (auto reverseEncoding : reverseEncodingTable) {
-        auto value = reverseEncoding[0][0];
-        auto letters = reverseEncoding[1];
-        for (auto letter : letters) {
-            encodingTable[encodingTableIndex(letter)] = value;
-        }
+    // const std::string reverseEncodingTable [][2]
+    //     {
+    //         { "1", "bfpv" },
+    //         { "2", "cgjkqsxz" },
+    //         { "3", "dt" },
+    //         { "4", "l" },
+    //         { "5", "mn" },
+    //         { "6", "r" },
+    //     };
+
+    EncodingTable tab;
+
+    tab.fill(InvalidEncoding);
+
+    initTableValue(tab, "bfpv",     '1');
+    initTableValue(tab, "cgjkqsxz", '2');
+    initTableValue(tab, "dt",       '3');
+    initTableValue(tab, "l",        '4');
+    initTableValue(tab, "mn",       '5');
+    initTableValue(tab, "r",        '6');
+
+    int i = 0;
+    for (auto entry : tab) {
+        std::cout << entry << " = " << i << std::endl;
     }
 
-    return encodingTable;
+    // for (auto reverseEncoding : reverseEncodingTable) {
+    //     auto value = reverseEncoding[0][0];
+    //     auto letters = reverseEncoding[1];
+    //     for (auto letter : letters) {
+    //         encodingTable[encodingTableIndex(letter)] = value;
+    //     }
+    // }
+
+    return tab;
 }
 
 
 constexpr char Soundex::InvalidEncoding;
 constexpr unsigned int Soundex::MaxCodeLength;
 
-const EncodingTable Soundex::encodingTable = Soundex::setupEncodingTable();
+const EncodingTable Soundex::encodingTable = Soundex::initTable();
 
 
 #include "gmock/gmock.h"    
