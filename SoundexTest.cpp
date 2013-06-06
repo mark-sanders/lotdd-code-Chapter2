@@ -6,9 +6,9 @@ using ::std::tolower;
 
 class Soundex {
 private:
-    static const char InvalidEncoding;
+    static constexpr char InvalidEncoding { '\0' };
 
-    static const unsigned int MaxCodeLength { 4 };
+    static constexpr unsigned int MaxCodeLength { 4 };
     
     static const std::vector<char> encodings;
 
@@ -109,7 +109,6 @@ private:
     static std::vector<char> initial_encodings();
 };
 
-const char Soundex::InvalidEncoding = '\0';
     
 std::vector<char> Soundex::initial_encodings() {
 
@@ -136,6 +135,9 @@ std::vector<char> Soundex::initial_encodings() {
     return encodings;
 }
 
+
+constexpr char Soundex::InvalidEncoding;
+constexpr unsigned int Soundex::MaxCodeLength;
 
 const std::vector<char> Soundex::encodings = Soundex::initial_encodings();
 
